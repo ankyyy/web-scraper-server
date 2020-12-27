@@ -12,7 +12,6 @@ const handler = async function ({ url }) {
 
 router.post('/scrape-website', async function (req, res) {
     try {
-        console.log(req.body)
         const result = await handler(req.body)
         res.status(200).json(result)
     }

@@ -8,6 +8,14 @@ services:
       - "5000:3000"
     links:
       - mongo
+    depends_on: 
+      - mongo
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      MONGODB_URI: mongodb://mongo:27017/web_scrapper
+    volumes:
+      - .:/usr/src/app
   mongo:
     container_name: mongo
     image: mongo
