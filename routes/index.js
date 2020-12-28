@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { handlerWrapper } = require('../util');
+const { handlerWrapper,getURL } = require('../util');
 const {
     getAllScrapResultHandler,
     getScrapResultByIdHandler,
@@ -7,9 +7,19 @@ const {
     getScrapResultHandler
 } = require('../apiHandlers/handlers')
 
-router.post('/api/getScrapResult', handlerWrapper(getScrapResultHandler));
+const urlValidator = (req, res, next) => {
+    const body = req.body
+    const url = getURL(body.url)
+    if (!url) {
+        return res.status(400).json('Invalid URL')
+    }
+    req.body.url = url
+    next()
+}
 
-router.post('/api/scrapResult', handlerWrapper(saveScrapResultHandler));
+router.post('/api/getScrapResult', urlValidator, handlerWrapper(getScrapResultHandler));
+
+router.post('/api/scrapResult', urlValidator, handlerWrapper(saveScrapResultHandler));
 
 router.get('/api/scrapResult/:id', handlerWrapper(getScrapResultByIdHandler));
 
