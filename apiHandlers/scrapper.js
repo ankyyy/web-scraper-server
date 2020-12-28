@@ -10,7 +10,7 @@ function extractData(anchorTags, origin) {
   return anchorTags.filter(isValidLink).map((anchorTag) => {
     const isRelativeToWebPage = anchorTag.href.startsWith('/') || anchorTag.href.startsWith(origin);
     const url = anchorTag.href.startsWith('/') ? origin + anchorTag.href : anchorTag.href;
-    return { url, caption: anchorTag.text, isRelativeToWebPage, href: anchorTag.href };
+    return { url, caption: anchorTag.text, isRelativeToWebPage };
   })
 }
 
@@ -24,9 +24,12 @@ async function getDom(url) {
   return domCache[url]
 }
 
-function extractLinksData(links) {
+function extractDestinationLinksData(links) {
   return Promise.all(links.map(async (link) => {
     try {
+      if (link.isRelativeToWebPage) {
+        return link
+      }
       const dom = await getDom(link.url)
       const document = dom.window.document
       return {
@@ -37,6 +40,7 @@ function extractLinksData(links) {
       }
     }
     catch (e) {
+      console.log('error',e)
       return link
     }
   }))
@@ -48,8 +52,18 @@ async function getAnchorTags(url) {
   const dom = await getDom(url)
   const nodeList = [...dom.window.document.querySelectorAll('a')];
   const origin = (new URL(url)).origin
-  const anchorData = extractData(nodeList, origin)
-  resultCache[url] = await extractLinksData(anchorData)
+  const anchorTags = extractData(nodeList, origin)
+  const currentPageData = {
+    lastModified: dom.window.document.lastModified,
+    characterSet: dom.window.document.characterSet,
+  }
+  const anchorTagsWithCurrentPageData = anchorTags.map(tag => {
+    if (tag.isRelativeToWebPage) {
+      return { ...currentPageData, ...tag }
+    }
+    return tag
+  })
+  resultCache[url] = await extractDestinationLinksData(anchorTagsWithCurrentPageData)
   return resultCache[url]
 }
 module.exports = {
