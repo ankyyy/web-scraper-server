@@ -2,7 +2,6 @@ const { getAnchorTags } = require('./scrapper');
 const scrapModel = require('../models/Scrap');
 
 const getScrapResultHandler = async function (req) {
-    console.log(req.body.url)
     const url = req.body.url
     const result = await getAnchorTags(url)
     return { status: 200, body: { url, result } };
